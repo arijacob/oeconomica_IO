@@ -2,7 +2,8 @@ library(tidyverse)
 library(ggplot2)
 library(ggthemes)
 
-df <- read.csv('/Users/rachelalper/Desktop/Desktop Mess/master data.csv')
+
+df <- read.csv('https://raw.githubusercontent.com/arijacob/oeconomica_IO/main/Oeconomica/Master-data.csv')
 
 season_func <- function(month) {
   season <- ifelse(month %in% c(12, 1, 2), "winter",
@@ -78,12 +79,13 @@ ggplot(data = df) +
 
 #Comparing actual sales to average with rolling mean
 library(zoo)
-ggplot(data = df) +
-  geom_line(aes(x = date, y = rollmean(log(dominant_sales), k=15, align='right',  fill = NA), color = "Actual Sales (logged)")) +  # actual sales logged
-  geom_line(data = df, aes(x = date, y = rollmean(predicted_zero, k=15, align='right',  fill = NA), color = "Predicted Sales if no Midconduct")) + # Regression line with 'conduct_period' set to zero
+ggplot(data = df, aes(x = as.Date(date))) +
+  geom_line(aes(y = rollmean(log(dominant_sales), k=15, align='right',  fill = NA), color = "Actual Sales")) +  # actual sales logged
+  geom_line(aes( y = rollmean(predicted_zero, k=15, align='right',  fill = NA), color = "Predicted Sales if no Midconduct")) + # Regression line with 'conduct_period' set to zero
   scale_color_manual(values = c(
-    'Actual Sales (logged)' = 'darkgreen',
+    'Actual Sales' = 'darkgreen',
     'Predicted Sales if no Midconduct' = 'purple')) +
-  labs(color = 'Legend') +
-  theme(legend.position="bottom") +
-  theme_tufte()
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  labs(x = "Year", y = "Sales (logged)", color = 'Legend') +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
