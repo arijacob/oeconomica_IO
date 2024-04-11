@@ -66,7 +66,7 @@ df_zero = df %>%
   mutate(conduct_period = 0)
 
 df = df %>%
-  mutate(predicted = predict(reg2, newdata = df), 
+  mutate(predicted = predict(reg, newdata = df), 
          predicted_zero =  predict(reg, newdata = df_zero))
 
 # Plotting the data points and the regression lines
