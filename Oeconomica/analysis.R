@@ -1,9 +1,12 @@
 library(tidyverse)
 library(ggplot2)
 library(ggthemes)
-
+library(zoo)
 
 df <- read.csv('https://raw.githubusercontent.com/arijacob/oeconomica_IO/main/Oeconomica/Master-data.csv')
+
+df = df %>%
+  mutate(date = as.Date(date))
 
 season_func <- function(month) {
   season <- ifelse(month %in% c(12, 1, 2), "winter",
@@ -24,16 +27,21 @@ reg = lm(log(dominant_sales) ~ conduct_period +
            log(dominant_wage) + log(waffle_cone_price) + log(cpi_less_food_and_energy) + 
            log(unemployment_rate) + factor(year) + factor(season), data = df)
 
+reg2 = lm(log(dominant_sales) ~ conduct_period + 
+           factor(state) + log(temp) + log(milk_price) +
+           log(sugar_price) + log(eggs_price) + log(diesel_price) + 
+           log(dominant_wage) + log(waffle_cone_price) + log(cpi_less_food_and_energy) + 
+           log(unemployment_rate) + factor(year) + factor(season) + log(defendant_6_wage) + log(defendant_4_wage) + log(defendant_2_wage), data = df)
+
 #wages graph
-library(ggplot2)
 ggplot(df, aes(x = date)) +
-  geom_point(aes(y = defendant_1_wage), color = "blue" , size = 0.25) +
+  geom_point(aes(y = rollmean(defendant_1_wage, k=15, align='right',  fill = NA)), color = "blue" , size = 0.25) +
   geom_point(aes(y = defendant_2_wage), color = "red", size = 0.25) +
   geom_point(aes(y = defendant_3_wage), color = "green", size = 0.25) +
   geom_point(aes(y = defendant_4_wage), color = "purple", size = 0.25) +
   geom_point(aes(y = defendant_5_wage), color = "darkblue", size = 0.25) +
   geom_point(aes(y = defendant_6_wage), color = "darkgreen", size =0.25) +
-  geom_point(aes(y = defendant_7_wage), color = "orange", size =0.25) +
+  #geom_point(aes(y = defendant_7_wage), color = "orange", size =0.25) +
   geom_point(aes(y = dominant_price), color = "black", size =0.25) +
   labs(x = "Date", y = "Wages", title = "Wages Comparison") +
   theme_minimal()
@@ -58,34 +66,21 @@ df_zero = df %>%
   mutate(conduct_period = 0)
 
 df = df %>%
-  mutate(predicted = predict(reg, newdata = df), 
+  mutate(predicted = predict(reg2, newdata = df), 
          predicted_zero =  predict(reg, newdata = df_zero))
-
 
 # Plotting the data points and the regression lines
 ggplot(data = df) +
   geom_line(aes(x = date, y = predicted), color = "blue") +  # Original regression line
   geom_line(data = df, aes(x = date, y = predicted_zero), color = "purple", linetype = "dashed")  # Regression line with 'conduct_period' set to zero
 
-#GRAPH COMPARING ACTUAL SALES TO PREDICTED IF CONDUCT PERIOD WAS 0
-ggplot(data = df) +
-  geom_line(aes(x = date, y = log(dominant_sales), color = "Actual Sales (logged)")) +  # actual sales logged
-  geom_line(data = df, aes(x = date, y = predicted_zero, color = "Predicted Sales if no Midconduct"), linetype = "dashed") + # Regression line with 'conduct_period' set to zero
-  scale_color_manual(values = c(
-    'Actual Sales (logged)' = 'darkgreen',
-    'Predicted Sales if no Midconduct' = 'purple')) +
-  labs(color = 'Legend') +
-  theme(legend.position="bottom")
 
 #Comparing actual sales to average with rolling mean
-library(zoo)
-ggplot(data = df, aes(x = as.Date(date))) +
-  geom_line(aes(y = rollmean(log(dominant_sales), k=15, align='right',  fill = NA), color = "Actual Sales")) +  # actual sales logged
-  geom_line(aes( y = rollmean(predicted_zero, k=15, align='right',  fill = NA), color = "Predicted Sales if no Midconduct")) + # Regression line with 'conduct_period' set to zero
+ggplot(data = df, aes(x = date)) +
+  geom_line(aes(y = rollmean(log(dominant_sales), k=20, align='right',  fill = NA), color = "Actual Sales")) +  # actual sales logged
+  geom_line(aes(y = rollmean(predicted_zero, k=20, align='right',  fill = NA), color = "Predicted Sales assuming no misconduct")) + # Regression line with 'conduct_period' set to zero
   scale_color_manual(values = c(
     'Actual Sales' = 'darkgreen',
-    'Predicted Sales if no Midconduct' = 'purple')) +
-  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
-  labs(x = "Year", y = "Sales (logged)", color = 'Legend') +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+    'Predicted Sales assuming no misconduct' = 'purple')) +
+  labs(y = "Sales (logged)", color = 'Legend') +
+  theme_excel_new()
