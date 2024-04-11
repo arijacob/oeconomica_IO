@@ -31,18 +31,18 @@ reg2 = lm(log(dominant_sales) ~ conduct_period +
            factor(state) + log(temp) + log(milk_price) +
            log(sugar_price) + log(eggs_price) + log(diesel_price) + 
            log(dominant_wage) + log(waffle_cone_price) + log(cpi_less_food_and_energy) + 
-           log(unemployment_rate) + factor(year) + factor(season) + log(defendant_6_wage) + log(defendant_4_wage) + log(defendant_2_wage), data = df)
+           log(unemployment_rate) + factor(year) + factor(season) + log(defendant_6_wage) + log(defendant_4_wage) + log(defendant_5_wage), data = df)
 
 #wages graph
 ggplot(df, aes(x = date)) +
-  geom_point(aes(y = rollmean(defendant_1_wage, k=15, align='right',  fill = NA)), color = "blue" , size = 0.25) +
+  geom_point(aes(y = defendant_1_wage), color = "pink" , size = 0.25) +
   geom_point(aes(y = defendant_2_wage), color = "red", size = 0.25) +
   geom_point(aes(y = defendant_3_wage), color = "green", size = 0.25) +
   geom_point(aes(y = defendant_4_wage), color = "purple", size = 0.25) +
   geom_point(aes(y = defendant_5_wage), color = "darkblue", size = 0.25) +
   geom_point(aes(y = defendant_6_wage), color = "darkgreen", size =0.25) +
   #geom_point(aes(y = defendant_7_wage), color = "orange", size =0.25) +
-  geom_point(aes(y = dominant_price), color = "black", size =0.25) +
+  #geom_point(aes(y = dominant_price), color = "black", size =0.25) +
   labs(x = "Date", y = "Wages", title = "Wages Comparison") +
   theme_minimal()
 
