@@ -2,6 +2,8 @@ library(tidyverse)
 library(ggplot2)
 library(ggthemes)
 library(zoo)
+library(stargazer)
+library(officer)
 
 df <- read.csv('https://raw.githubusercontent.com/arijacob/oeconomica_IO/main/Oeconomica/Master-data.csv')
 
@@ -28,10 +30,13 @@ reg = lm(log(dominant_sales) ~ conduct_period +
            log(unemployment_rate) + factor(year) + factor(season), data = df)
 
 reg2 = lm(log(dominant_sales) ~ conduct_period + 
-           factor(state) + log(temp) + log(milk_price) +
-           log(sugar_price) + log(eggs_price) + log(diesel_price) + 
+           factor(state) + log(temp) + log(milk_price) + log(eggs_price) +
+           log(sugar_price) + log(diesel_price) + 
            log(dominant_wage) + log(waffle_cone_price) + log(cpi_less_food_and_energy) + 
            log(unemployment_rate) + factor(year) + factor(season) + log(defendant_6_wage) + log(defendant_4_wage) + log(defendant_5_wage), data = df)
+
+#regression table latex export
+stargazer(reg2)
 
 #wages graph
 ggplot(df, aes(x = date)) +
@@ -75,7 +80,7 @@ ggplot(data = df) +
   geom_line(data = df, aes(x = date, y = predicted_zero), color = "purple", linetype = "dashed")  # Regression line with 'conduct_period' set to zero
 
 
-#Comparing actual sales to average with rolling mean
+#Comparing actual sales to average with rolling mean (for reg2)
 ggplot(data = df, aes(x = date)) +
   geom_line(aes(y = rollmean(log(dominant_sales), k=20, align='right',  fill = NA), color = "Actual Sales")) +  # actual sales logged
   geom_line(aes(y = rollmean(predicted_zero, k=20, align='right',  fill = NA), color = "Predicted Sales assuming no misconduct")) + # Regression line with 'conduct_period' set to zero
