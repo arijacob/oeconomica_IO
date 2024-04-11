@@ -66,8 +66,8 @@ df_zero = df %>%
   mutate(conduct_period = 0)
 
 df = df %>%
-  mutate(predicted = predict(reg, newdata = df), 
-         predicted_zero =  predict(reg, newdata = df_zero))
+  mutate(predicted = predict(reg2, newdata = df), 
+         predicted_zero =  predict(reg2, newdata = df_zero))
 
 # Plotting the data points and the regression lines
 ggplot(data = df) +
@@ -84,3 +84,7 @@ ggplot(data = df, aes(x = date)) +
     'Predicted Sales assuming no misconduct' = 'purple')) +
   labs(y = "Sales (logged)", color = 'Legend') +
   theme_excel_new()
+
+#calculation of damages
+df = df %>%
+  mutate(difference = predicted - dominant_sales)
