@@ -1,5 +1,4 @@
 library(tidyverse)
-library(ggplot2)
 library(ggthemes)
 library(zoo)
 library(stargazer)
@@ -9,6 +8,7 @@ df <- read.csv('https://raw.githubusercontent.com/arijacob/oeconomica_IO/main/Oe
 df = df %>%
   mutate(date = as.Date(date)) %>%
   mutate(state = as.factor(state))
+
 
 season_func <- function(month) {
   season <- ifelse(month %in% c(12, 1, 2), "winter",
@@ -21,7 +21,10 @@ season_func <- function(month) {
 df = df %>%
   mutate(year = year(date), month = month(date)) %>%
   mutate(season = season_func(month)) %>%
-  select(-month) 
+  select(-month) %>%
+  mutate(year = factor(year),
+         season = factor(season),
+         state = factor(state))
 
 reg = lm(log(dominant_sales) ~ conduct_period + 
            factor(state) + log(temp) + log(milk_price) +
@@ -30,10 +33,10 @@ reg = lm(log(dominant_sales) ~ conduct_period +
            log(unemployment_rate) + factor(year) + factor(season), data = df)
 
 reg2 = lm(log(dominant_sales) ~ conduct_period + 
-           factor(state) + log(temp) + log(milk_price) + log(eggs_price) +
+           state + log(temp) + log(milk_price) + log(eggs_price) +
            log(sugar_price) + log(diesel_price) + 
            log(dominant_wage) + log(waffle_cone_price) + log(cpi_less_food_and_energy) + 
-           log(unemployment_rate) + factor(year) + factor(season) + log(defendant_6_wage) + log(defendant_4_wage) + log(defendant_5_wage), data = df)
+           log(unemployment_rate) + year + season + log(defendant_6_wage) + log(defendant_4_wage) + log(defendant_5_wage), data = df)
 
 #regression table latex export
 stargazer(reg2)
