@@ -96,12 +96,11 @@ ggplot(data = df, aes(x = date)) +
   labs(y = "Sales (logged)", color = 'Legend') +
   theme_excel_new()
 
-#calculation of damages (this is with reg not reg2 bc 
+#calculation of damages, this is with reg not reg2 bc 
 #i ran into issues, but reg is more conservative also hopefully we can fix and
 #then just switch to reg2
 df = df %>%
-  mutate(difference = exp(predicted) - dominant_sales)
-#need to figure out how to unlog (?) predicted
+  mutate(difference = exp(predicted_zero) - dominant_sales)
 
-sum(df$conduct_period[df$conduct_period == 1], df$difference[df$conduct_period == 1])
+sum(df$difference[df$conduct_period == 1])
 
