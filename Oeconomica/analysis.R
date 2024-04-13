@@ -3,12 +3,12 @@ library(ggplot2)
 library(ggthemes)
 library(zoo)
 library(stargazer)
-library(officer)
 
 df <- read.csv('https://raw.githubusercontent.com/arijacob/oeconomica_IO/main/Oeconomica/Master-data.csv')
 
 df = df %>%
-  mutate(date = as.Date(date))
+  mutate(date = as.Date(date)) %>%
+  mutate(state = as.factor(state))
 
 season_func <- function(month) {
   season <- ifelse(month %in% c(12, 1, 2), "winter",
@@ -21,7 +21,7 @@ season_func <- function(month) {
 df = df %>%
   mutate(year = year(date), month = month(date)) %>%
   mutate(season = season_func(month)) %>%
-  select(-month)
+  select(-month) 
 
 reg = lm(log(dominant_sales) ~ conduct_period + 
            factor(state) + log(temp) + log(milk_price) +
@@ -70,6 +70,12 @@ ggplot(df, aes(x = date)) +
 df_zero = df %>%
   mutate(conduct_period = 0)
 
+#reg prediction
+df = df %>%
+  mutate(predicted = predict(reg, newdata = df), 
+         predicted_zero =  predict(reg, newdata = df_zero))
+
+#reg2 prediction
 df = df %>%
   mutate(predicted = predict(reg2, newdata = df), 
          predicted_zero =  predict(reg2, newdata = df_zero))
@@ -90,6 +96,12 @@ ggplot(data = df, aes(x = date)) +
   labs(y = "Sales (logged)", color = 'Legend') +
   theme_excel_new()
 
-#calculation of damages
+#calculation of damages (this is with reg not reg2 bc 
+#i ran into issues, but reg is more conservative also hopefully we can fix and
+#then just switch to reg2
 df = df %>%
-  mutate(difference = predicted - dominant_sales)
+  mutate(difference = exp(predicted) - dominant_sales)
+#need to figure out how to unlog (?) predicted
+
+sum(df$conduct_period[df$conduct_period == 1], df$difference[df$conduct_period == 1])
+
