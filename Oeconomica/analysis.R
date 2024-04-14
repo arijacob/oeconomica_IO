@@ -133,7 +133,7 @@ ggplot(data = df, aes(x = date)) +
 
 
 #calculation of damages, this is with reg not reg2 bc 
-#i ran into issues, but reg is more conservative also hopefully we can fix and
+# I ran into issues, but reg is more conservative also hopefully we can fix and
 #then just switch to reg2
 
 df = df %>%
