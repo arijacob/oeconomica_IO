@@ -32,14 +32,41 @@ reg = lm(log(dominant_sales) ~ conduct_period +
            log(dominant_wage) + log(waffle_cone_price) + log(cpi_less_food_and_energy) + 
            log(unemployment_rate) + factor(year) + factor(season), data = df)
 
-reg2 = lm(log(dominant_sales) ~ conduct_period + 
-           state + log(temp) + log(milk_price) + log(eggs_price) +
-           log(sugar_price) + log(diesel_price) + 
-           log(dominant_wage) + log(waffle_cone_price) + log(cpi_less_food_and_energy) + 
-           log(unemployment_rate) + year + season + log(defendant_6_wage) + log(defendant_4_wage) + log(defendant_5_wage), data = df)
 
-#regression table latex export
-stargazer(reg2)
+library(tune)
+library(ranger)
+library(tidymodels)
+lm_model = 
+  linear_reg() %>%
+  set_engine("lm")
+
+
+vars_to_log <- c("dominant_sales", "temp", "milk_price", "eggs_price",
+                 "sugar_price", "diesel_price", "dominant_wage",
+                 "waffle_cone_price", "cpi_less_food_and_energy",
+                 "unemployment_rate", "defendant_6_wage", "defendant_4_wage",
+                 "defendant_5_wage")
+
+doms_rec = 
+  recipe(dominant_sales ~conduct_period + 
+           state + temp + milk_price + eggs_price +
+           sugar_price+ diesel_price + 
+           dominant_wage + waffle_cone_price + cpi_less_food_and_energy + 
+           unemployment_rate + year +
+           season + defendant_6_wage + defendant_4_wage + 
+           defendant_5_wage, data = df) %>%
+  step_log(all_of(vars_to_log), offset = 1) %>%
+  step_dummy(state, year, season) 
+
+lm_model = linear_reg() %>%
+  set_engine("lm")
+
+lm_wflow <- 
+  workflow() %>% 
+  add_model(lm_model) %>% 
+  add_recipe(doms_rec)
+
+lm_fit <- fit(lm_wflow, df)
 
 #wages graph
 ggplot(df, aes(x = date)) +
@@ -69,19 +96,23 @@ ggplot(df, aes(x = date)) +
   theme_minimal()
 
 #REGRESSION GRAPH COMPARIOSN
-
 df_zero = df %>%
   mutate(conduct_period = 0)
 
-#reg prediction
+lm_fit_zero <- fit(lm_wflow, df_zero)
+  
+
+
 df = df %>%
   mutate(predicted = predict(reg, newdata = df), 
          predicted_zero =  predict(reg, newdata = df_zero))
 
-#reg2 prediction
 df = df %>%
-  mutate(predicted = predict(reg2, newdata = df), 
-         predicted_zero =  predict(reg2, newdata = df_zero))
+  mutate(predicted_zero =  predict(lm_fit, newdata = df_zero))
+
+#with predicted values
+df_predicted = df_predicted %>%
+  mutate(predicted_zero = df_predicted_zero$.pred)
 
 # Plotting the data points and the regression lines
 ggplot(data = df) +
@@ -99,9 +130,15 @@ ggplot(data = df, aes(x = date)) +
   labs(y = "Sales (logged)", color = 'Legend') +
   theme_excel_new()
 
+<<<<<<< Updated upstream
 #calculation of damages
+=======
+
+#calculation of damages, this is with reg not reg2 bc 
+#i ran into issues, but reg is more conservative also hopefully we can fix and
+#then just switch to reg2
+>>>>>>> Stashed changes
 df = df %>%
   mutate(difference = exp(predicted_zero) - dominant_sales)
 
 sum(df$difference[df$conduct_period == 1])
-
