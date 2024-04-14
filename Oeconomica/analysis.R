@@ -99,9 +99,7 @@ ggplot(data = df, aes(x = date)) +
   labs(y = "Sales (logged)", color = 'Legend') +
   theme_excel_new()
 
-#calculation of damages, this is with reg not reg2 bc 
-#i ran into issues, but reg is more conservative also hopefully we can fix and
-#then just switch to reg2
+#calculation of damages
 df = df %>%
   mutate(difference = exp(predicted_zero) - dominant_sales)
 
